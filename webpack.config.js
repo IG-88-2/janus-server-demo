@@ -12,12 +12,12 @@ module.exports = {
 	mode : `development`,
 
 	entry : {
-		'test' : `./tests.ts`
+		'main' : `./main.ts`
 	},
 	
 	output : {
 		filename : `[name].js`,
-		path : path.resolve(__dirname, `tests`)
+		path : path.resolve(__dirname, `dist`)
 	},
 
 	resolve : {
@@ -34,10 +34,7 @@ module.exports = {
 			{
 				test : /\.js$/,
 				exclude : /(node_modules|bower_components)/,
-				loader : `babel-loader`,
-				//options : {
-					//presets : [ `@babel/preset-env` ]
-				//}
+				loader : `babel-loader`
 			}
 		]
 	},
@@ -46,18 +43,7 @@ module.exports = {
 
 	target : `node`,
 
-	plugins : [
-		new webpack.DefinePlugin({
-			'process.env.NODE_ENV' : JSON.stringify(`development`),
-			'process.mode' : JSON.stringify(`development`)
-		}),
-		new CopyWebpackPlugin([ 
-			{ 
-				from : "./janus-gateway-videoroom-demo/development", 
-				to : "development" 
-			}
-		])
-	],
+	plugins : [],
 	
 	externals: {
 		puppeteer: 'require("puppeteer")',

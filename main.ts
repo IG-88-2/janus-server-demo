@@ -1,0 +1,346 @@
+import { Janus } from './janus-gateway-node/dist';
+import { v1 as uuidv1 } from 'uuid';
+import { exec } from 'child_process';
+const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(), n));
+const path = require(`path`);
+const fs = require('fs');
+const util = require('util');
+const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
+const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
+
+let janus = null;
+
+let enable = true;
+
+const logger = {
+	enable: () => {
+
+        enable = true;
+    
+    },
+    disable: () => {
+    
+        enable = false;
+    
+    },
+	info: (message) => {
+
+		if (enable) {
+			console.log("\x1b[32m", `[test info] ${message}`);
+			//logFile.write(util.format(message) + '\n');
+		}
+
+	},
+	browser: (...args) => {
+
+		if (enable) {
+			if (args) {
+				const message = args.join(' ');
+				console.log("\x1b[33m", `[test browser] ${message}`);
+				if (message.includes("error")) {
+					logFile.write(util.format(message) + '\n');
+				}
+			}
+		}
+
+	},
+	error: (message) => {
+		
+		if (enable) {
+			if (typeof message==="string") {
+				console.log("\x1b[31m", `[test error] ${message}`);
+				logFile.write(util.format(message) + '\n');
+			} else {
+				try {
+					const string = transformError(message);
+					console.log("\x1b[31m", `[test error] ${string}`);
+					logFile.write(util.format(string) + '\n');
+				} catch(error) {}
+			}
+		}
+
+	},
+	json: (object) => {
+
+		if (enable) {
+			const string = JSON.stringify(object, null, 2);
+			console.log("\x1b[37m", `[test json] ${string}`);
+			//logFile.write(util.format(string) + '\n');
+		}
+
+	}
+};
+
+
+
+const generateInstances = (amount:number) => {
+
+	const instances = [];
+
+	const start_ws_port = 8188;
+
+	const start_admin_ws_port = 7188;
+
+	for(let i = 0; i < amount; i++) {
+		instances.push({
+			id : uuidv1(),
+			admin_key : uuidv1(),
+			server_name : `instance_${i}`,
+			log_prefix : `instance_${i}:`,
+			docker_ip : `127.0.0.${1 + i}`, //"127.0.0.1", 
+			ws_port : start_ws_port + i,
+			admin_ws_port : start_admin_ws_port + i,
+			stun_server : "stun.voip.eutelia.it",
+			stun_port : 3478,
+			debug_level : 4 //5 //6
+		});
+	}
+	
+	return instances;
+
+};
+
+
+
+const launchContainers = (image, instances) => {
+
+	logger.info(`launching ${instances.length} containers`);
+
+	logger.json(instances);
+
+	const step = 101;
+
+	let udpStart = 20000;
+
+	let udpEnd = udpStart + step - 1;
+
+	for(let i = 0; i < instances.length; i++) {
+		const {
+			id,
+			admin_key,
+			server_name,
+			ws_port,
+			log_prefix,
+			admin_ws_port,
+			stun_server, 
+			stun_port,
+			docker_ip,
+			debug_level
+		} = instances[i];
+		
+		const args = [
+			[ "ID", id ],
+			[ "ADMIN_KEY", admin_key ],
+			[ "SERVER_NAME", server_name ],
+			[ "WS_PORT", ws_port ],
+			[ "ADMIN_WS_PORT", admin_ws_port ],
+			[ "LOG_PREFIX", log_prefix ],
+			[ "DOCKER_IP", docker_ip ],
+			[ "DEBUG_LEVEL", debug_level ],
+			[ "RTP_PORT_RANGE", `${udpStart}-${udpEnd}` ],
+			[ "STUN_SERVER", stun_server ],
+			[ "STUN_PORT", stun_port ]
+		];
+		
+		let command = `docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
+		//--publish-all=true
+		//-P
+		//--network=host
+		//-p 127.0.0.1:20000-40000:20000-40000
+		//command += `-p 127.0.0.1:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
+		command += `-p ${docker_ip}:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
+		command += `-p ${ws_port}:${ws_port} `;
+		command += `-p ${admin_ws_port}:${admin_ws_port} `;
+		command += `${args.map(([name,value]) => `-e ${name}="${value}"`).join(' ')} `;
+		command += `${image}`;
+		
+		logger.info(`launching container ${i}...${command}`);
+
+		exec(
+			command,
+			{
+				maxBuffer: 1024 * 1024 * 1024
+			},
+			(error, stdout, stderr) => {
+				
+				logger.info(`container ${server_name} terminated`);
+
+				if (error) {
+					if (error.message) {
+						logger.error(error.message);
+					} else {
+						logger.error(error);
+					}
+				}
+
+			}
+		);
+
+		udpStart += step;
+		udpEnd += step;
+	}
+
+};
+
+
+
+const terminateContainers = async () => {
+
+	const command = `FOR /F %A IN ('docker ps -q') DO docker rm -f %~A`; //docker stop
+
+	//docker rm $(docker ps -a -q)
+
+	try {
+
+		const result = await exec(
+			command
+		);
+
+	} catch(error) {}
+
+};
+
+
+
+const instancesToConfigurations = (instances) => {
+
+	const data = instances.map(({
+		admin_key,
+		server_name,
+		ws_port,
+		docker_ip,
+		admin_ws_port,
+		log_prefix,
+		stun_server, 
+		stun_port,
+		id,
+		debug_level
+	}) => {
+		return {
+			protocol: `ws`,
+			address: docker_ip,
+			port: ws_port,
+			adminPort: admin_ws_port,
+			adminKey: admin_key,
+			server_name
+		};
+	});
+
+	return data;
+
+};
+
+
+
+const retrieveContext = () => {
+
+	try {
+
+		const contextPath = path.resolve('context.json');
+
+		const file = fs.readFileSync(contextPath, 'utf-8');
+
+		const context = JSON.parse(file);
+
+		logger.info('context loaded');
+
+		logger.json(context);
+
+		return context;
+
+	} catch(error) {
+
+		logger.error(error);
+
+		return {};
+
+	}
+
+};
+
+
+
+const updateContext = async (rooms) => {
+
+	try {
+		
+		const contextPath = path.resolve('context.json');
+
+		const file = JSON.stringify(rooms);
+
+		logger.info('update context');
+
+		logger.json(rooms);
+
+		const fsp = fs.promises;
+
+		await fsp.writeFile(contextPath, file, 'utf8');
+		
+	} catch(error) {
+
+		logger.error(error);
+		
+	}
+
+	return rooms;
+
+}
+
+
+
+const termiante = async () => {
+
+	await janus.terminate();
+
+	await terminateContainers();
+
+}
+
+
+
+const main = async () => {
+	
+	const instances = generateInstances(2);
+	
+	launchContainers('janus-gateway', instances);
+
+	const configs = instancesToConfigurations(instances);
+
+	await pause(3000);
+	
+	janus = new Janus({
+		getId: () => uuidv1(),
+		instances: configs,
+		retrieveContext, 
+		updateContext,
+		logger,
+		onConnected : () => {
+			
+			logger.info(`janus - connected`);
+			
+		},
+		onDisconnected : () => {
+			
+			logger.info(`janus - disconnected`);
+			
+		},
+		onError : (error) => {
+			
+			logger.error(error);
+
+		}
+	});
+	
+	await janus.initialize();
+	
+	const result = await janus.createRoom({
+		load: {
+			description: 'default room'
+		}
+	});
+
+	logger.json(result);
+	
+}
+
+main();

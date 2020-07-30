@@ -5,8 +5,8 @@
     "copyright": "Copyright © 2020 Janus",
     "private": true,
     "scripts": {
-        "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -w --config webpack.config.js",
-        "test": "./node_modules/.bin/mocha -b ./tests/test.js"
+        "start": "node ./dist/main.js",
+        "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -w --config webpack.config.js"
     },
     "dependencies": {
         "@types/express": "^4.11.1",
