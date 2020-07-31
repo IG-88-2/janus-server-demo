@@ -142,7 +142,13 @@ const launchContainers = (image, instances) => {
 			[ "STUN_PORT", stun_port ]
 		];
 		
-		let command = `docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
+		let command = null;
+		if (process.platform==='linux') {
+			command = `sudo docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
+		} else {
+			command = `docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
+		}
+		
 		//--publish-all=true
 		//-P
 		//--network=host
@@ -186,10 +192,14 @@ const launchContainers = (image, instances) => {
 
 const terminateContainers = async () => {
 
-	const command = `FOR /F %A IN ('docker ps -q') DO docker rm -f %~A`; //docker stop
-
-	//docker rm $(docker ps -a -q)
-
+	let command = null;
+	
+	if (process.platform==='linux') {
+		command = `sudo docker rm $(sudo docker ps -a -q)`; //docker stop
+	} else {
+		command = `FOR /F %A IN ('docker ps -q') DO docker rm -f %~A`; //docker stop
+	}
+	
 	try {
 
 		const result = await exec(
@@ -302,7 +312,9 @@ const main = async () => {
 	
 	const instances = generateInstances(2);
 	
-	launchContainers('janus-gateway', instances);
+	const name = `herbert1947/janus-gateway-videoroom`; //janus-gateway
+
+	launchContainers(name, instances);
 
 	const configs = instancesToConfigurations(instances);
 
