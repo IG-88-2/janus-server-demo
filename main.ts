@@ -87,7 +87,7 @@ const generateInstances = (amount:number) => {
 			admin_key : uuidv1(),
 			server_name : `instance_${i}`,
 			log_prefix : `instance_${i}:`,
-			docker_ip : `3.121.126.200`, //`127.0.0.${1 + i}`, //"127.0.0.1", 
+			docker_ip : `127.0.0.${1 + i}`, //`3.121.126.200`, //"127.0.0.1", //172.31.15.161
 			ws_port : start_ws_port + i,
 			nat_1_1_mapping : "3.121.126.200",
 			keep_private_host : 1,
