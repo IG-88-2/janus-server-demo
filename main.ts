@@ -87,12 +87,11 @@ const generateInstances = (amount:number) => {
 			admin_key : uuidv1(),
 			server_name : `instance_${i}`,
 			log_prefix : `instance_${i}:`,
-			docker_ip : `127.0.0.${1 + i}`, //`3.121.126.200`, //"127.0.0.1", //172.31.15.161
+			docker_ip : `127.0.0.${1 + i}`, //"127.0.0.1", 
 			ws_port : start_ws_port + i,
-			nat_1_1_mapping : "3.121.126.200",
-			keep_private_host : 1,
 			admin_ws_port : start_admin_ws_port + i,
 			stun_server : "stun.voip.eutelia.it",
+			nat_1_1_mapping : "127.0.0.1", //"3.121.126.200",
 			stun_port : 3478,
 			debug_level : 5 //6
 		});
@@ -128,8 +127,7 @@ const launchContainers = (image, instances) => {
 			stun_port,
 			docker_ip,
 			debug_level,
-			nat_1_1_mapping,
-			keep_private_host
+			nat_1_1_mapping
 		} = instances[i];
 		
 		const args = [
@@ -141,20 +139,13 @@ const launchContainers = (image, instances) => {
 			[ "LOG_PREFIX", log_prefix ],
 			[ "DOCKER_IP", docker_ip ],
 			[ "DEBUG_LEVEL", debug_level ],
+			[ "NAT_1_1_MAPPING", nat_1_1_mapping],
 			[ "RTP_PORT_RANGE", `${udpStart}-${udpEnd}` ],
 			[ "STUN_SERVER", stun_server ],
-			[ "STUN_PORT", stun_port ],
-			[ "NAT_1_1_MAPPING", nat_1_1_mapping],
-			[ "KEEP-PRIVATE-HOST", keep_private_host]
+			[ "STUN_PORT", stun_port ]
 		];
 		
-		let command = null;
-		if (process.platform==='linux') {
-			command = `sudo docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
-		} else {
-			command = `docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
-		}
-		
+		let command = `docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
 		//--publish-all=true
 		//-P
 		//--network=host
@@ -193,6 +184,7 @@ const launchContainers = (image, instances) => {
 	}
 
 };
+
 
 
 
