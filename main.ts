@@ -91,7 +91,7 @@ const generateInstances = (amount:number) => {
 			ws_port : start_ws_port + i,
 			admin_ws_port : start_admin_ws_port + i,
 			stun_server : "stun.voip.eutelia.it",
-			nat_1_1_mapping : "127.0.0.1", //"3.121.126.200",
+			nat_1_1_mapping : "3.121.126.200", //"127.0.0.1", //"3.121.126.200",
 			stun_port : 3478,
 			debug_level : 5 //6
 		});
