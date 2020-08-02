@@ -89,6 +89,7 @@ const generateInstances = (amount:number) => {
 			log_prefix : `instance_${i}:`,
 			docker_ip : `127.0.0.${1 + i}`, //"127.0.0.1", 
 			ws_port : start_ws_port + i,
+			nat_1_1_mapping : "3.121.126.200",
 			admin_ws_port : start_admin_ws_port + i,
 			stun_server : "stun.voip.eutelia.it",
 			stun_port : 3478,
@@ -125,7 +126,8 @@ const launchContainers = (image, instances) => {
 			stun_server, 
 			stun_port,
 			docker_ip,
-			debug_level
+			debug_level,
+			nat_1_1_mapping
 		} = instances[i];
 		
 		const args = [
@@ -139,7 +141,8 @@ const launchContainers = (image, instances) => {
 			[ "DEBUG_LEVEL", debug_level ],
 			[ "RTP_PORT_RANGE", `${udpStart}-${udpEnd}` ],
 			[ "STUN_SERVER", stun_server ],
-			[ "STUN_PORT", stun_port ]
+			[ "STUN_PORT", stun_port ],
+			[ "NAT_1_1_MAPPING", nat_1_1_mapping],
 		];
 		
 		let command = null;
