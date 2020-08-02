@@ -87,9 +87,10 @@ const generateInstances = (amount:number) => {
 			admin_key : uuidv1(),
 			server_name : `instance_${i}`,
 			log_prefix : `instance_${i}:`,
-			docker_ip : `127.0.0.${1 + i}`, //"127.0.0.1", 
+			docker_ip : `3.121.126.200`, //`127.0.0.${1 + i}`, //"127.0.0.1", 
 			ws_port : start_ws_port + i,
 			nat_1_1_mapping : "3.121.126.200",
+			keep_private_host : 1,
 			admin_ws_port : start_admin_ws_port + i,
 			stun_server : "stun.voip.eutelia.it",
 			stun_port : 3478,
@@ -127,7 +128,8 @@ const launchContainers = (image, instances) => {
 			stun_port,
 			docker_ip,
 			debug_level,
-			nat_1_1_mapping
+			nat_1_1_mapping,
+			keep_private_host
 		} = instances[i];
 		
 		const args = [
@@ -143,6 +145,7 @@ const launchContainers = (image, instances) => {
 			[ "STUN_SERVER", stun_server ],
 			[ "STUN_PORT", stun_port ],
 			[ "NAT_1_1_MAPPING", nat_1_1_mapping],
+			[ "KEEP-PRIVATE-HOST", keep_private_host]
 		];
 		
 		let command = null;
