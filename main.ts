@@ -8,9 +8,13 @@ const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
-const options = { key: fs.readFileSync("certs/lxcie.com.key"), cert: fs.readFileSync("certs/STAR_lxcie_com.crt") };
+var pem = require('pem');
+//const options = { key: fs.readFileSync("certs/lxcie.com.key"), cert: fs.readFileSync("certs/STAR_lxcie_com.crt") };
 //const options = { cert: fs.readFileSync('./cert/cert.pem'), key: fs.readFileSync('./cert/key.pem') };
-const server = https.createServer(options);
+//const server = https.createServer(options);
+
+
+
 
 let janus = null;
 
@@ -310,7 +314,7 @@ const termiante = async () => {
 
 
 
-const main = async () => {
+const main = async (server) => {
 	
 	const instances = generateInstances(2);
 	
@@ -369,4 +373,18 @@ const main = async () => {
 	
 }
 
-main();
+pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
+	if (err) {
+	  throw err
+	}
+	const server = https.createServer({ key: keys.clientKey, cert: keys.certificate }, function (req, res) {
+	
+		console.log('server started', keys);
+
+	}).listen(443)
+
+	main(server);
+
+})
+
+

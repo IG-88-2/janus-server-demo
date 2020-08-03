@@ -74,6 +74,7 @@
         "janus-gateway-node": "^0.0.0",
         "mocha": "^7.1.1",
         "node-usage": "^0.0.3",
+        "pem": "^1.14.4",
         "pidusage": "^2.0.19",
         "puppeteer": "^2.1.1",
         "redis": "^3.0.2",
