@@ -1,4 +1,4 @@
-import { Janus } from './janus-gateway-node/dist';
+import { Janus } from 'janus-gateway-node';
 import { v1 as uuidv1 } from 'uuid';
 import { exec } from 'child_process';
 const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(), n));
@@ -7,6 +7,12 @@ const fs = require('fs');
 const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
+const https = require('https');
+
+const server = https.createServer({
+	cert: fs.readFileSync('./cert/cert.pem'),
+	key: fs.readFileSync('./cert/key.pem')
+});
 
 let janus = null;
 
@@ -310,7 +316,7 @@ const main = async () => {
 	
 	const instances = generateInstances(2);
 	
-	const name = `herbert1947/janus-gateway-videoroom`; //janus-gateway
+	const name = `herbert1947/janus-gateway-videoroom`;
 
 	launchContainers(name, instances);
 
@@ -324,6 +330,16 @@ const main = async () => {
 		retrieveContext, 
 		updateContext,
 		logger,
+		webSocketOptions: {
+			//host: '3.121.126.200',
+			//host: '127.0.0.1', 
+			server,
+			port: 8080,
+			backlog: 10,
+			clientTracking: false,
+			perMessageDeflate: false,
+			maxPayload: 10000
+		},
 		onConnected : () => {
 			
 			logger.info(`janus - connected`);
