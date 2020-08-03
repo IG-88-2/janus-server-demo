@@ -377,11 +377,11 @@ pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
 	if (err) {
 	  throw err
 	}
-	const server = https.createServer({ key: keys.clientKey, cert: keys.certificate }, function (req, res) {
+	const server = https.createServer({ key: keys.clientKey, cert: keys.certificate }/*, function (req, res) {
 	
 		console.log('server started', keys);
 
-	}).listen(443)
+	}*/); //.listen(443)
 
 	main(server);
 
