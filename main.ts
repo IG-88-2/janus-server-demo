@@ -334,7 +334,7 @@ const main = async () => {
 			//host: '3.121.126.200',
 			//host: '127.0.0.1', 
 			server,
-			port: 8080,
+			port: 443, //8080,
 			backlog: 10,
 			clientTracking: false,
 			perMessageDeflate: false,
