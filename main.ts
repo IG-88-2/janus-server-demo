@@ -8,11 +8,8 @@ const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
-//const options = { key: fs.readFileSync("certs/lxcie.com.key"), cert: fs.readFileSync("certs/STAR_lxcie_com.crt") };
-const options = {
-	cert: fs.readFileSync('./cert/cert.pem'),
-	key: fs.readFileSync('./cert/key.pem')
-};
+const options = { key: fs.readFileSync("certs/lxcie.com.key"), cert: fs.readFileSync("certs/STAR_lxcie_com.crt") };
+//const options = { cert: fs.readFileSync('./cert/cert.pem'), key: fs.readFileSync('./cert/key.pem') };
 const server = https.createServer(options);
 
 let janus = null;
@@ -326,7 +323,7 @@ const main = async () => {
 	await pause(3000);
 
 	server.listen(443);
-	
+
 	janus = new Janus({
 		getId: () => uuidv1(),
 		instances: configs,

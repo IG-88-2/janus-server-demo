@@ -6,7 +6,7 @@
     "private": true,
     "scripts": {
         "start": "node ./dist/main.js",
-        "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -w --config webpack.config.js"
+        "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js --config webpack.config.js"
     },
     "dependencies": {
         "@types/express": "^4.11.1",

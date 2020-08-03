@@ -42,12 +42,14 @@ module.exports = {
 	devtool : `source-map`,
 
 	target : `node`,
-
-	plugins : [],
 	
 	externals: {
 		puppeteer: 'require("puppeteer")',
 	},
+
+	plugins: [
+        new CopyWebpackPlugin([{ from: "./certs", to: "certs" }])
+	],
 	
 	node : {
 		__dirname : false,
