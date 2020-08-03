@@ -321,9 +321,7 @@ const main = async () => {
 	const configs = instancesToConfigurations(instances);
 
 	await pause(3000);
-
-	server.listen(443);
-
+	
 	janus = new Janus({
 		getId: () => uuidv1(),
 		instances: configs,
@@ -357,6 +355,8 @@ const main = async () => {
 		}
 	});
 	
+	//server.listen(443);
+
 	await janus.initialize();
 	
 	const result = await janus.createRoom({
