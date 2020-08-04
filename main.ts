@@ -8,13 +8,45 @@ const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
-var pem = require('pem');
-//const options = { key: fs.readFileSync("certs/lxcie.com.key"), cert: fs.readFileSync("certs/STAR_lxcie_com.crt") };
-//const options = { cert: fs.readFileSync('./cert/cert.pem'), key: fs.readFileSync('./cert/key.pem') };
-//const server = https.createServer(options);
+import express = require("express");
+import cors = require("cors");
+import bodyParser = require("body-parser");
+const router = express.Router();
+const app = express();
+const setAllowed = (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
 
+    res.header("Access-Control-Allow-Methods", "HEAD, PUT, POST, GET, OPTIONS, DELETE");
 
+    res.header("Access-Control-Allow-Headers", "origin, content-type, Authorization, x-access-token");
 
+    if (req.method === "OPTIONS") {
+        return res
+            .status(405)
+            .send()
+            .end();
+    } else {
+        next();
+    }
+};
+
+router.get("/", (req, res) => {
+    res.json({
+        version: "1.1.2"
+    });
+});
+
+app.use(cors());
+
+app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(bodyParser.json());
+
+//app.use(express.static(path.join(config.ROOT, "/public")));
+
+app.use(setAllowed);
+
+app.use("/v1", router);
 
 let janus = null;
 
@@ -314,7 +346,20 @@ const termiante = async () => {
 
 
 
-const main = async (server) => {
+const main = async () => {
+	
+	const keys = { 
+		key: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/privkey.pem"), //("cert/privkey.pem"), 
+		cert: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/cert.pem") //("cert/cert.pem") 
+	};
+	
+	console.log('1. certificate generated', keys);
+	
+	const serverOptions = { key: keys.key, cert: keys.cert };
+	
+	console.log('2. create server options', serverOptions);
+	
+	const server = https.createServer(serverOptions, app).listen(443); 
 	
 	const instances = generateInstances(2);
 	
@@ -336,7 +381,7 @@ const main = async (server) => {
 			//host: '3.121.126.200',
 			//host: '127.0.0.1', 
 			server,
-			port: 443, //8080,
+			//port: 443, //8080,
 			backlog: 10,
 			clientTracking: false,
 			perMessageDeflate: false,
@@ -373,18 +418,6 @@ const main = async (server) => {
 	
 }
 
-pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
-	if (err) {
-	  throw err
-	}
-	const server = https.createServer({ key: keys.clientKey, cert: keys.certificate }/*, function (req, res) {
-	
-		console.log('server started', keys);
 
-	}*/); //.listen(443)
-
-	main(server);
-
-})
-
+main();
 
