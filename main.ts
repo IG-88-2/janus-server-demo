@@ -189,7 +189,9 @@ const main = async () => {
 		instancesAmount:2,
 		retrieveContext:retrieveContext,
 		updateContext:updateContext,
-		webSocketOptions:{},
+		webSocketOptions:{
+			port:443
+		},
 		onError:(error) => {
 			
 			logger.error(error);
