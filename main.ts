@@ -200,6 +200,8 @@ const main = async () => {
 	});
 
 	await janus.initialize();
+
+	logger.info(`READY TO CREATE ROOMS!!!`);
 	
 	for(let i = 0; i < nRooms; i++) {
 		logger.info(`creating room ${i + 1}...`);
