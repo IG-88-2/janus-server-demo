@@ -201,9 +201,10 @@ const main = async () => {
 
 	await janus.initialize();
 
-	await pause(3000);
+	await pause(15000);
 
 	for(let i = 0; i < nRooms; i++) {
+		logger.info(`creating room ${i + 1}...`);
 		const result = await janus.createRoom({
 			load: {
 				description: i%2 ? `Cool vp8 room (${i})` : `Cool vp9 room (${i})`,
@@ -214,6 +215,7 @@ const main = async () => {
 				vp9_profile: i===0 ? undefined : "1"
 			}
 		});
+		logger.info(`room ${i + 1} created...`);
 		logger.json(result);
 	}
 	
