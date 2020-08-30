@@ -1,5 +1,4 @@
 import { Janus } from 'janus-gateway-node';
-import { v1 as uuidv1 } from 'uuid';
 import { exec } from 'child_process';
 const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(), n));
 const path = require(`path`);
@@ -113,173 +112,6 @@ const logger = {
 
 
 
-const generateInstances = (amount:number) => {
-
-	const instances = [];
-
-	const start_ws_port = 8188;
-
-	const start_admin_ws_port = 7188;
-
-	for(let i = 0; i < amount; i++) {
-		instances.push({
-			id : uuidv1(),
-			admin_key : uuidv1(),
-			server_name : `instance_${i}`,
-			log_prefix : `instance_${i}:`,
-			docker_ip : `127.0.0.${1 + i}`, //"127.0.0.1", 
-			ws_port : start_ws_port + i,
-			admin_ws_port : start_admin_ws_port + i,
-			stun_server : "stun.voip.eutelia.it",
-			nat_1_1_mapping : "3.121.126.200", //"127.0.0.1", //"3.121.126.200",
-			stun_port : 3478,
-			debug_level : 5 //6
-		});
-	}
-	
-	return instances;
-
-};
-
-
-
-const launchContainers = (image, instances) => {
-
-	logger.info(`launching ${instances.length} containers`);
-
-	logger.json(instances);
-
-	const step = 101;
-
-	let udpStart = 20000;
-
-	let udpEnd = udpStart + step - 1;
-
-	for(let i = 0; i < instances.length; i++) {
-		const {
-			id,
-			admin_key,
-			server_name,
-			ws_port,
-			log_prefix,
-			admin_ws_port,
-			stun_server, 
-			stun_port,
-			docker_ip,
-			debug_level,
-			nat_1_1_mapping
-		} = instances[i];
-		
-		const args = [
-			[ "ID", id ],
-			[ "ADMIN_KEY", admin_key ],
-			[ "SERVER_NAME", server_name ],
-			[ "WS_PORT", ws_port ],
-			[ "ADMIN_WS_PORT", admin_ws_port ],
-			[ "LOG_PREFIX", log_prefix ],
-			[ "DOCKER_IP", docker_ip ],
-			[ "DEBUG_LEVEL", debug_level ],
-			[ "NAT_1_1_MAPPING", nat_1_1_mapping],
-			[ "RTP_PORT_RANGE", `${udpStart}-${udpEnd}` ],
-			[ "STUN_SERVER", stun_server ],
-			[ "STUN_PORT", stun_port ]
-		];
-		
-		let command = `docker run -i --cap-add=NET_ADMIN --name ${server_name} `;
-		//--publish-all=true
-		//-P
-		//--network=host
-		//-p 127.0.0.1:20000-40000:20000-40000
-		//command += `-p 127.0.0.1:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
-		command += `-p ${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `; //`-p ${docker_ip}:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
-		command += `-p ${ws_port}:${ws_port} `;
-		command += `-p ${admin_ws_port}:${admin_ws_port} `;
-		command += `${args.map(([name,value]) => `-e ${name}="${value}"`).join(' ')} `;
-		command += `${image}`;
-		
-		logger.info(`launching container ${i}...${command}`);
-
-		exec(
-			command,
-			{
-				maxBuffer: 1024 * 1024 * 1024
-			},
-			(error, stdout, stderr) => {
-				
-				logger.info(`container ${server_name} terminated`);
-
-				if (error) {
-					if (error.message) {
-						logger.error(error.message);
-					} else {
-						logger.error(error);
-					}
-				}
-
-			}
-		);
-
-		udpStart += step;
-		udpEnd += step;
-	}
-
-};
-
-
-
-
-const terminateContainers = async () => {
-
-	let command = null;
-	
-	if (process.platform==='linux') {
-		command = `sudo docker rm $(sudo docker ps -a -q)`; //docker stop
-	} else {
-		command = `FOR /F %A IN ('docker ps -q') DO docker rm -f %~A`; //docker stop
-	}
-	
-	try {
-
-		const result = await exec(
-			command
-		);
-
-	} catch(error) {}
-
-};
-
-
-
-const instancesToConfigurations = (instances) => {
-
-	const data = instances.map(({
-		admin_key,
-		server_name,
-		ws_port,
-		docker_ip,
-		admin_ws_port,
-		log_prefix,
-		stun_server, 
-		stun_port,
-		id,
-		debug_level
-	}) => {
-		return {
-			protocol: `ws`,
-			address: docker_ip,
-			port: ws_port,
-			adminPort: admin_ws_port,
-			adminKey: admin_key,
-			server_name
-		};
-	});
-
-	return data;
-
-};
-
-
-
 const retrieveContext = () => {
 
 	try {
@@ -289,10 +121,6 @@ const retrieveContext = () => {
 		const file = fs.readFileSync(contextPath, 'utf-8');
 
 		const context = JSON.parse(file);
-
-		logger.info('context loaded');
-
-		logger.json(context);
 
 		return context;
 
@@ -316,10 +144,6 @@ const updateContext = async (rooms) => {
 
 		const file = JSON.stringify(rooms);
 
-		logger.info('update context');
-
-		logger.json(rooms);
-
 		const fsp = fs.promises;
 
 		await fsp.writeFile(contextPath, file, 'utf8');
@@ -336,85 +160,55 @@ const updateContext = async (rooms) => {
 
 
 
-const termiante = async () => {
-
-	await janus.terminate();
-
-	await terminateContainers();
-
-}
-
-
-
 const main = async () => {
 	
+	const nRooms = 5;
+
 	const keys = { 
-		key: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/privkey.pem"), //("cert/privkey.pem"), 
-		cert: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/cert.pem") //("cert/cert.pem") 
+		key: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/privkey.pem"),
+		cert: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/cert.pem")
 	};
 	
-	console.log('1. certificate generated', keys);
-	
-	const serverOptions = { key: keys.key, cert: keys.cert };
-	
-	console.log('2. create server options', serverOptions);
+	const serverOptions = { 
+		key: keys.key, 
+		cert: keys.cert 
+	};
 	
 	const server = https.createServer(serverOptions, app).listen(443); 
 	
-	const instances = generateInstances(2);
-	
-	const name = `herbert1947/janus-gateway-videoroom`;
-
-	launchContainers(name, instances);
-
-	const configs = instancesToConfigurations(instances);
-
 	await pause(3000);
-	
+
 	janus = new Janus({
-		getId: () => uuidv1(),
-		instances: configs,
-		retrieveContext, 
-		updateContext,
 		logger,
-		webSocketOptions: {
-			//host: '3.121.126.200',
-			//host: '127.0.0.1', 
-			server,
-			//port: 443, //8080,
-			backlog: 10,
-			clientTracking: false,
-			perMessageDeflate: false,
-			maxPayload: 10000
-		},
-		onConnected : () => {
-			
-			logger.info(`janus - connected`);
-			
-		},
-		onDisconnected : () => {
-			
-			logger.info(`janus - disconnected`);
-			
-		},
-		onError : (error) => {
+		keepAliveTimeout:10000,
+		syncInterval:10000,
+		instancesAmount:2,
+		retrieveContext: retrieveContext,
+		updateContext: updateContext,
+		onError: (error) => {
 			
 			logger.error(error);
 
 		}
 	});
-	
-	//server.listen(443);
 
 	await janus.initialize();
 	
-	const result = await janus.createRoom({
-		load: {
-			description: 'default room'
-		}
-	});
+	await pause(3000);
 
-	logger.json(result);
+	for(let i = 0; i < nRooms; i++) {
+		const result = await janus.createRoom({
+			load: {
+				description: i%2 ? `Cool vp8 room (${i})` : `Cool vp9 room (${i})`,
+				bitrate: 512000,
+				bitrate_cap: false,
+				fir_freq: undefined,
+				videocodec:i===0 ? "vp8" : "vp9",
+				vp9_profile:i===0 ? undefined : "1"
+			}
+		});
+		logger.json(result);
+	}
 	
 }
 
