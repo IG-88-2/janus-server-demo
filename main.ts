@@ -187,9 +187,10 @@ const main = async () => {
 		keepAliveTimeout:10000,
 		syncInterval:10000,
 		instancesAmount:2,
-		retrieveContext: retrieveContext,
-		updateContext: updateContext,
-		onError: (error) => {
+		retrieveContext:retrieveContext,
+		updateContext:updateContext,
+		webSocketOptions:{},
+		onError:(error) => {
 			
 			logger.error(error);
 
@@ -207,8 +208,8 @@ const main = async () => {
 				bitrate: 512000,
 				bitrate_cap: false,
 				fir_freq: undefined,
-				videocodec:i===0 ? "vp8" : "vp9",
-				vp9_profile:i===0 ? undefined : "1"
+				videocodec: i===0 ? "vp8" : "vp9",
+				vp9_profile: i===0 ? undefined : "1"
 			}
 		});
 		logger.json(result);
