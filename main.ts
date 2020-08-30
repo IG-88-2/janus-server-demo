@@ -33,7 +33,7 @@ const setAllowed = (req, res, next) => {
     }
 };
 
-app.use(express.static(p));
+//app.use(express.static(p));
 
 router.get("/", (req, res) => {
     res.json({
