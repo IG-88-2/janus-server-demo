@@ -12,6 +12,9 @@ const transformError = (error: Object | string) => !error ?  `Unknown error` : t
 const https = require('https');
 const router = express.Router();
 const app = express();
+const p = path.join(__dirname, "development");
+
+console.log('static path', p);
 
 const setAllowed = (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -30,6 +33,8 @@ const setAllowed = (req, res, next) => {
     }
 };
 
+app.use(express.static(p));
+
 router.get("/", (req, res) => {
     res.json({
         version: "1.1.2"
@@ -41,8 +46,6 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(bodyParser.json());
-
-app.use(express.static(path.resolve("development")));
 
 app.use(setAllowed);
 
@@ -213,6 +216,4 @@ const main = async () => {
 	
 }
 
-
 main();
-
