@@ -1,4 +1,7 @@
 import { Janus } from 'janus-gateway-node';
+import express = require("express");
+import cors = require("cors");
+import bodyParser = require("body-parser");
 import { exec } from 'child_process';
 const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(), n));
 const path = require(`path`);
@@ -7,11 +10,9 @@ const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
-import express = require("express");
-import cors = require("cors");
-import bodyParser = require("body-parser");
 const router = express.Router();
 const app = express();
+
 const setAllowed = (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
 
@@ -41,7 +42,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(bodyParser.json());
 
-//app.use(express.static(path.join(config.ROOT, "/public")));
+app.use(express.static(path.resolve("development")));
 
 app.use(setAllowed);
 
@@ -193,7 +194,7 @@ const main = async () => {
 	});
 
 	await janus.initialize();
-	
+
 	await pause(3000);
 
 	for(let i = 0; i < nRooms; i++) {

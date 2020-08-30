@@ -9,23 +9,23 @@ module.exports = {
 
 	context: __dirname,
 
-	mode : `development`,
+	mode: `development`,
 
-	entry : {
+	entry: {
 		'main' : `./main.ts`
 	},
 	
-	output : {
+	output: {
 		filename : `[name].js`,
 		path : path.resolve(__dirname, `dist`)
 	},
 
-	resolve : {
+	resolve: {
 		extensions : [ `.ts`, `.tsx`, `.js` ]
 	},
 
-	module : {
-		rules : [
+	module: {
+		rules: [
 			{
 				test : /\.(ts|tsx)?$/,
 				exclude : /(node_modules)/,
@@ -39,19 +39,21 @@ module.exports = {
 		]
 	},
 
-	devtool : `source-map`,
+	devtool: `source-map`,
 
-	target : `node`,
+	target: `node`,
 	
 	externals: {
 		puppeteer: 'require("puppeteer")',
 	},
 
 	plugins: [
-        new CopyWebpackPlugin([{ from: "./certs", to: "certs" }])
+		new CopyWebpackPlugin([
+			{ from: "./janus-gateway-videoroom-demo/development", to: "development" }
+		])
 	],
 	
-	node : {
+	node: {
 		__dirname : false,
 		__filename : false
 	}
