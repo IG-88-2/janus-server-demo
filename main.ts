@@ -200,9 +200,7 @@ const main = async () => {
 	});
 
 	await janus.initialize();
-
-	await pause(15000);
-
+	
 	for(let i = 0; i < nRooms; i++) {
 		logger.info(`creating room ${i + 1}...`);
 		const result = await janus.createRoom({
