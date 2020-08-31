@@ -188,6 +188,7 @@ const main = async () => {
 		syncInterval:10000,
 		instancesAmount:2,
 		retrieveContext:retrieveContext,
+		publicIp:'18.158.159.40',
 		updateContext:updateContext,
 		webSocketOptions:{
 			server
