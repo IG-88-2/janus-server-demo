@@ -6,6 +6,8 @@
     "private": true,
     "scripts": {
         "start": "node ./dist/main.js",
+        "pm2:start": "pm2 start ./dist/main.js",
+        "pm2:stop": "pm2 stop ./dist/main.js",
         "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js --config webpack.config.js"
     },
     "dependencies": {
