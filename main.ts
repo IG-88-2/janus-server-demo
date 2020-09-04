@@ -13,8 +13,7 @@ const https = require('https');
 const router = express.Router();
 const app = express();
 const p = path.join(__dirname, "development");
-
-console.log('static path', p);
+let janus = null;
 
 const setAllowed = (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -41,6 +40,63 @@ router.get("/", (req, res) => {
     });
 });
 
+router.post("/room", async (req, res, next) => {
+
+	try {
+
+		const { description, videocodec, vp9_profile } = req.body;
+
+		const load = {
+			description: `room ${Math.round(Math.random() * 1000)}`,
+			bitrate: 512000,
+			bitrate_cap: false,
+			fir_freq: undefined,
+			videocodec: "vp9",
+			vp9_profile: "1"
+		}
+
+		if (description) {
+			load.description = String(description);
+		}
+
+		if (videocodec) {
+			load.videocodec = String(videocodec);
+		}
+
+		if (vp9_profile) {
+			load.vp9_profile = String(vp9_profile);
+		}
+
+		logger.info(`creating room... ${description}`);
+
+		const result = await janus.createRoom({ load });
+
+		const response = {
+			success: true,
+			code: 200,
+			data: result
+		};
+
+		return res.json(response);
+
+	} catch(error) {
+
+		logger.info(`creating room error...`);
+
+		logger.error(error);
+
+		const response = {
+			success: false,
+			code: 500,
+			data: error
+		};
+
+		return res.json(response);
+
+	}
+
+});
+
 app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -51,7 +107,6 @@ app.use(setAllowed);
 
 app.use("/v1", router);
 
-let janus = null;
 
 let enable = true;
 
