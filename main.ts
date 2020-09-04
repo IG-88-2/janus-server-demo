@@ -239,7 +239,7 @@ const main = async () => {
 
 	janus = new Janus({
 		logger,
-		keepAliveTimeout:10000,
+		keepAliveTimeout:30000,
 		syncInterval:10000,
 		instancesAmount:2,
 		retrieveContext:retrieveContext,
