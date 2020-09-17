@@ -52,6 +52,7 @@ router.post("/room", async (req, res, next) => {
 			bitrate_cap: false,
 			fir_freq: undefined,
 			videocodec: "vp9",
+			permanent: true,
 			vp9_profile: "1"
 		}
 
@@ -256,8 +257,6 @@ const main = async () => {
 	});
 
 	await janus.initialize();
-
-	logger.info(`READY TO CREATE ROOMS!!!`);
 	
 	for(let i = 0; i < nRooms; i++) {
 		logger.info(`creating room ${i + 1}...`);
@@ -268,7 +267,8 @@ const main = async () => {
 				bitrate_cap: false,
 				fir_freq: undefined,
 				videocodec: i===0 ? "vp8" : "vp9",
-				vp9_profile: i===0 ? undefined : "1"
+				vp9_profile: i===0 ? undefined : "1",
+				permanent: true
 			}
 		});
 		logger.info(`room ${i + 1} created...`);
