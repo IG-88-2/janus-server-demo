@@ -2,18 +2,20 @@ import { Janus } from 'janus-gateway-node';
 import express = require("express");
 import cors = require("cors");
 import bodyParser = require("body-parser");
-import { exec } from 'child_process';
 const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(), n));
 const path = require(`path`);
 const fs = require('fs');
 const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
+const roomsFile = fs.createWriteStream(__dirname + '/rooms.log', { flags : 'a' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
 const router = express.Router();
 const app = express();
 const p = path.join(__dirname, "development");
 let janus = null;
+
+
 
 const setAllowed = (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -36,7 +38,7 @@ app.use(express.static(p));
 
 router.get("/", (req, res) => {
     res.json({
-        version: "1.1.2"
+        version: "0.0.3"
     });
 });
 
@@ -54,7 +56,7 @@ router.post("/room", async (req, res, next) => {
 			videocodec: "vp9",
 			permanent: true,
 			vp9_profile: "1"
-		}
+		};
 
 		if (description) {
 			load.description = String(description);
@@ -71,6 +73,11 @@ router.post("/room", async (req, res, next) => {
 		logger.info(`creating room... ${description}`);
 
 		const result = await janus.createRoom({ load });
+
+		if (result && result.load && result.load.context) {
+			const id = result.load.context.room_id;
+			roomsFile.write(`${id}\n`);
+		}
 
 		const response = {
 			success: true,
@@ -224,21 +231,32 @@ const main = async () => {
 	
 	const nRooms = 5;
 
-	const keys = { 
+	/*const keys = { 
 		key: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/privkey.pem"),
 		cert: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/cert.pem")
-	};
+	};*/
 	
 	const serverOptions = { 
-		key: keys.key, 
-		cert: keys.cert 
+		//key: keys.key, 
+		//cert: keys.cert 
 	};
 	
 	const server = https.createServer(serverOptions, app).listen(443); 
 	
 	await pause(3000);
+	
+	let instances = null;
 
+	try {
+		const instancesPath = path.resolve('instances.json');
+		const result = fs.readFileSync(instancesPath, 'utf-8');
+		instances = JSON.parse(result);
+	} catch(e) {}
+	
+	const generateInstances = instances ? () => instances : undefined;
+	
 	janus = new Janus({
+		generateInstances,
 		logger,
 		keepAliveTimeout:30000,
 		syncInterval:10000,
@@ -257,6 +275,44 @@ const main = async () => {
 	});
 
 	await janus.initialize();
+
+	let list : string[] = [];
+	
+	try {
+
+		const rooms = fs.readFileSync(__dirname + '/rooms.log'); //, 'utf-8');
+
+		list = rooms.toString().split('\n').filter((s) => s.length > 0);
+
+	} catch(error) {
+		
+		console.error(error);
+	
+	}
+
+	console.log('rooms loaded', list);
+	
+	for(let i = 0; i < list.length; i++) {
+		const id = list[i].trim();
+		console.log(`recreating room ${id}...`);
+		try {
+			const result = await janus.createRoom({
+				load: {
+					id,
+					description: i%2 ? `Restore cool vp8 room (${i})` : `Restore cool vp9 room (${i})`,
+					bitrate: 512000,
+					bitrate_cap: false,
+					fir_freq: undefined,
+					videocodec: i===0 ? "vp8" : "vp9",
+					vp9_profile: i===0 ? undefined : "1",
+					permanent: true
+				}
+			});
+			console.log(`recreating room ${id} result...`, result.load);
+		} catch(error) {
+			console.error(error);
+		}
+	}
 	
 	for(let i = 0; i < nRooms; i++) {
 		logger.info(`creating room ${i + 1}...`);
@@ -271,6 +327,10 @@ const main = async () => {
 				permanent: true
 			}
 		});
+		logger.info(`creating room ${i + 1} result...`);
+		console.log(result.load);
+		const id = result.load.context.room_id;
+		roomsFile.write(`${id}\n`);
 		logger.info(`room ${i + 1} created...`);
 		logger.json(result);
 	}

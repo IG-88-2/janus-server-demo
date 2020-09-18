@@ -10,7 +10,10 @@
 			"type": "node",
 			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
 			"stopOnEntry": false,
-			"args": ["${workspaceFolder}/tests/test.js"],
+			"args": [
+                "${workspaceFolder}/dist/main.js"
+                //"${workspaceFolder}/tests/test.js"
+            ],
             "runtimeExecutable": null,
             "cwd": "${workspaceFolder}"
         }
