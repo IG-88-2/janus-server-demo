@@ -8,6 +8,7 @@ const fs = require('fs');
 const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
 const roomsFile = fs.createWriteStream(__dirname + '/rooms.log', { flags : 'a' });
+const { argv } = require('yargs');
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
 const router = express.Router();
@@ -231,9 +232,18 @@ const main = async () => {
 	
 	const nRooms = 5;
 
-	const keys = { 
-		key: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/privkey.pem"),
-		cert: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/cert.pem")
+	const coy = argv.coy;
+
+	console.log('start', argv, coy);
+
+	const paths = {
+		key:coy ? "/home/vmadmin/ssl/STAR_blipiq_com.ca-bundle" : "/etc/letsencrypt/live/kreiadesign.com/privkey.pem",
+		cert:coy ? "/home/vmadmin/ssl/STAR_blipiq_com.crt" : "/etc/letsencrypt/live/kreiadesign.com/cert.pem"
+	};
+
+	const keys = {
+		key:fs.readFileSync(paths.key),
+		cert:fs.readFileSync(paths.cert)
 	};
 	
 	const serverOptions = { 
@@ -262,7 +272,7 @@ const main = async () => {
 		syncInterval:10000,
 		instancesAmount:2,
 		retrieveContext:retrieveContext,
-		publicIp:'18.158.159.40',
+		publicIp:coy ? '40.87.103.74' : '18.158.159.40',
 		updateContext:updateContext,
 		webSocketOptions:{
 			server
