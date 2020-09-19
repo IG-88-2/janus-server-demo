@@ -231,14 +231,14 @@ const main = async () => {
 	
 	const nRooms = 5;
 
-	/*const keys = { 
+	const keys = { 
 		key: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/privkey.pem"),
 		cert: fs.readFileSync("/etc/letsencrypt/live/kreiadesign.com/cert.pem")
-	};*/
+	};
 	
 	const serverOptions = { 
-		//key: keys.key, 
-		//cert: keys.cert 
+		key: keys.key,
+		cert: keys.cert 
 	};
 	
 	const server = https.createServer(serverOptions, app).listen(443); 
@@ -280,7 +280,7 @@ const main = async () => {
 	
 	try {
 
-		const rooms = fs.readFileSync(__dirname + '/rooms.log'); //, 'utf-8');
+		const rooms = fs.readFileSync(__dirname + '/rooms.log');
 
 		list = rooms.toString().split('\n').filter((s) => s.length > 0);
 
