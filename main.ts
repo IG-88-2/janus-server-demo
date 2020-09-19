@@ -246,6 +246,8 @@ const main = async () => {
 		cert:fs.readFileSync(paths.cert)
 	};
 	
+	console.log(keys);
+
 	const serverOptions = { 
 		key: keys.key,
 		cert: keys.cert 

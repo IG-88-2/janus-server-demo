@@ -5,7 +5,7 @@
     "copyright": "Copyright © 2020 Janus",
     "private": true,
     "scripts": {
-        "start": "node ./dist/main.js",
+        "start": "node ./dist/main.js --coy",
         "containers:launch": "node ./launchInstances.js --image herbert1947/janus-gateway-videoroom --n 3",
         "containers:terminate": "node ./terminateInstances.js",
         "pm2:start": "pm2 start ./dist/main.js",
