@@ -270,19 +270,14 @@ const main = async () => {
 	janus = new Janus({
 		generateInstances,
 		logger,
-		keepAliveTimeout:30000,
-		syncInterval:10000,
-		instancesAmount:2,
-		retrieveContext:retrieveContext,
-		publicIp:coy ? '40.87.103.74' : '18.158.159.40',
-		updateContext:updateContext,
-		webSocketOptions:{
-			server
-		},
 		onError:(error) => {
 			
 			logger.error(error);
 
+		},
+		publicIp:coy ? '40.87.103.74' : '18.158.159.40',
+		webSocketOptions:{
+			server
 		}
 	});
 
