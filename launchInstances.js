@@ -11,13 +11,13 @@ const launchInstances = async () => {
     const generateId = () => uuid.v1();
     
     const dockerJanusImage = argv.image;
-
+    const publicIp = argv.ip;
     const instances = [];
 
+    console.log('public ip', publicIp);
+
     const instancesAmount = argv.n || 2;
-
     const start_ws_port = 8188;
-
     const start_admin_ws_port = 7188;
 
     for(let i = 0; i < instancesAmount; i++) {
@@ -30,7 +30,7 @@ const launchInstances = async () => {
             ws_port : start_ws_port + i,
             admin_ws_port : start_admin_ws_port + i,
             stun_server : "stun.voip.eutelia.it",
-            nat_1_1_mapping : `127.0.0.${1 + i}`, //"127.0.0.1", //"3.121.126.200",
+            nat_1_1_mapping : publicIp || `127.0.0.${1 + i}`, //"127.0.0.1", //"3.121.126.200"
             stun_port : 3478,
             debug_level : 5 //6
         });
