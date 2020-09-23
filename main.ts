@@ -7,7 +7,7 @@ const path = require(`path`);
 const fs = require('fs');
 const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags : 'w' });
-const roomsFile = fs.createWriteStream(__dirname + '/rooms.log', { flags : 'a' });
+//const roomsFile = fs.createWriteStream(__dirname + '/rooms.log', { flags : 'a' });
 const { argv } = require('yargs');
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, {showHidden: false, depth: null});
 const https = require('https');
@@ -77,7 +77,7 @@ router.post("/room", async (req, res, next) => {
 
 		if (result && result.load && result.load.context) {
 			const id = result.load.context.room_id;
-			roomsFile.write(`${id}\n`);
+			//roomsFile.write(`${id}\n`);
 		}
 
 		const response = {
@@ -296,7 +296,8 @@ const main = async () => {
 		console.error(error);
 	
 	}
-
+	
+	/*
 	console.log('rooms loaded', list);
 	
 	for(let i = 0; i < list.length; i++) {
@@ -320,6 +321,7 @@ const main = async () => {
 			console.error(error);
 		}
 	}
+	*/
 	
 	for(let i = 0; i < nRooms; i++) {
 		logger.info(`creating room ${i + 1}...`);
@@ -337,7 +339,7 @@ const main = async () => {
 		logger.info(`creating room ${i + 1} result...`);
 		console.log(result.load);
 		const id = result.load.context.room_id;
-		roomsFile.write(`${id}\n`);
+		//roomsFile.write(`${id}\n`);
 		logger.info(`room ${i + 1} created...`);
 		logger.json(result);
 	}
