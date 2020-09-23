@@ -237,7 +237,7 @@ const main = async () => {
 	console.log('start', argv, coy);
 
 	const paths = {
-		key:coy ? "/home/vmadmin/ssl/STAR_blipiq_com.ca-bundle" : "/etc/letsencrypt/live/kreiadesign.com/privkey.pem",
+		key:coy ? "/home/vmadmin/ssl/blipiq.key" : "/etc/letsencrypt/live/kreiadesign.com/privkey.pem", //STAR_blipiq_com.ca-bundle
 		cert:coy ? "/home/vmadmin/ssl/STAR_blipiq_com.crt" : "/etc/letsencrypt/live/kreiadesign.com/cert.pem"
 	};
 
