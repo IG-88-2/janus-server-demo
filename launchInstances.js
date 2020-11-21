@@ -32,7 +32,7 @@ const launchInstances = async () => {
             stun_server : "stun.voip.eutelia.it",
             nat_1_1_mapping : publicIp || `127.0.0.${1 + i}`, //"127.0.0.1", //"3.121.126.200"
             stun_port : 3478,
-            debug_level : 5 //6
+            debug_level : 1 //5 //6
         });
     }
 
