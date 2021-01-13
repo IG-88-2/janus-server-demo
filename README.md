@@ -18,9 +18,13 @@ improved or what is missing to make it useful for community. Thank you!
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Build
+```bash
 git clone https://github.com/IG-88-2/janus-server-demo
 git submodule update --init --recursive
+```
 install & build submodules
+```bash
 yarn install
 npm run build
 npm run start (use your public ip in command)
+```
