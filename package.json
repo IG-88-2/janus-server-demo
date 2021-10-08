@@ -6,7 +6,7 @@
     "private": true,
     "scripts": {
         "start": "node ./dist/main.js --ip 18.158.159.40",
-        "containers:launch": "node ./launchInstances.js --image herbert1947/janus-gateway-videoroom --n 3 --ip 18.158.159.40",
+        "containers:launch": "node ./launchInstances.js --image herbert1947/janus-gateway-videoroom --n 1 --ip 18.158.159.40",
         "containers:terminate": "node ./terminateInstances.js",
         "pm2:start": "pm2 start ./dist/main.js",
         "pm2:stop": "pm2 stop ./dist/main.js",
