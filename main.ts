@@ -3,13 +3,14 @@ const { argv } = require('yargs');
 import express = require("express");
 import cors = require("cors");
 import bodyParser = require("body-parser");
-const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(), n));
+const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(0), n));
 const path = require(`path`);
 const fs = require('fs');
 const util = require('util');
 const logFile = fs.createWriteStream(__dirname + '/test.log', { flags: 'w' });
 const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, { showHidden: false, depth: null });
 const https = require('https');
+const http = require('http');
 const router = express.Router();
 const app = express();
 
@@ -206,6 +207,16 @@ const launchServer = () => {
 
 };
 
+const launchHttpServer = () => {
+	
+	const server = http.createServer(
+		app
+	).listen(3000);
+	
+	return server;
+
+};
+
 const grabRunningInstances = () => {
 	
 	let instances = undefined;
@@ -254,12 +265,15 @@ const main = async () => {
 
 	const publicIp = argv.ip;
 
-	const server = launchServer();
+	const server = launchHttpServer();
 	
 	await pause(3000);
 	
 	//we need to get dockerized janus instances up and running
+	
 	let instances = grabRunningInstances();
+
+	console.log("running instances", instances);
 	
 	const generateInstances = instances ? () => instances : undefined;
 	
@@ -276,6 +290,7 @@ const main = async () => {
 	await janus.initialize();
 	
 	await createDummyRoomsForFun(nRooms);
+	
 	
 };
 
