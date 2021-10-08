@@ -51,7 +51,7 @@
         "rimraf": "^2.6.1",
         "rx-dom": "^7.0.3",
         "rxjs": "^6.5.3",
-        "socket.io": "^2.2.0",
+        "socket.io": "^2.4.0",
         "source-map-loader": "^0.2.1",
         "ts-loader": "8.0.1",
         "txtgen": "^2.2.2",
