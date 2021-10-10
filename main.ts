@@ -1,107 +1,26 @@
-import { Janus } from 'janus-gateway-node';
+import { createDummyRoomsForFun } from './utils/createDummyRoomsForFun';
+import { runLaunchInstancesScript } from './utils/runLaunchInstancesScript';
+import { terminateInstances } from './utils/terminateInstances';
+import { setAllowed } from './utils/setAllowed';
+import { Janus } from './janus-gateway-node/dist';
+import { pause } from './utils/pause';
+import { spawnProcess } from './utils/spawnProcess';
+import { logger } from './utils/logger';
 const { argv } = require('yargs');
-import express = require("express");
+import * as express from 'express';
 import cors = require("cors");
-import bodyParser = require("body-parser");
-const pause = (n:number) => new Promise((resolve) => setTimeout(() => resolve(0), n));
 const path = require(`path`);
 const fs = require('fs');
-const util = require('util');
-const logFile = fs.createWriteStream(__dirname + '/test.log', { flags: 'w' });
-const transformError = (error: Object | string) => !error ?  `Unknown error` : typeof error === "string" ? error : util.inspect(error, { showHidden: false, depth: null });
 const https = require('https');
 const http = require('http');
 const router = express.Router();
 const app = express();
-
 const p = path.join(__dirname, "development");
 
 let janus = null;
 
-let enable = true;
 
-const logger = {
-	enable: () => {
 
-        enable = true;
-    
-    },
-    disable: () => {
-    
-        enable = false;
-    
-    },
-	info: (message) => {
-
-		if (enable) {
-			console.log("\x1b[32m", `[test info] ${message}`);
-			//logFile.write(util.format(message) + '\n');
-		}
-
-	},
-	browser: (...args) => {
-
-		if (enable) {
-			if (args) {
-				const message = args.join(' ');
-				console.log("\x1b[33m", `[test browser] ${message}`);
-				if (message.includes("error")) {
-					//logFile.write(util.format(message) + '\n');
-				}
-			}
-		}
-
-	},
-	error: (message) => {
-		
-		if (enable) {
-			if (typeof message==="string") {
-				console.log("\x1b[31m", `[test error] ${message}`);
-				//logFile.write(util.format(message) + '\n');
-			} else {
-				try {
-					const string = transformError(message);
-					console.log("\x1b[31m", `[test error] ${string}`);
-					//logFile.write(util.format(string) + '\n');
-				} catch(error) {}
-			}
-		}
-
-	},
-	json: (object) => {
-
-		if (enable) {
-			const string = JSON.stringify(object, null, 2);
-			console.log("\x1b[37m", `[test json] ${string}`);
-			//logFile.write(util.format(string) + '\n');
-		}
-
-	}
-};
-
-const setAllowed = (req, res, next) => {
-
-    res.header("Access-Control-Allow-Origin", "*");
-
-    res.header("Access-Control-Allow-Methods", "HEAD, PUT, POST, GET, OPTIONS, DELETE");
-
-    res.header("Access-Control-Allow-Headers", "origin, content-type, Authorization, x-access-token");
-
-    if (req.method === "OPTIONS") {
-        return res
-            .status(405)
-            .send()
-            .end();
-    } else {
-        next();
-	}
-	
-};
-
-/**
- * when request to server is made - use janus.createRoom method from janus instance
- * to create new room and send its info back in response
- */
 const postNewRoom = async (req, res) => {
 
 	try {
@@ -168,7 +87,7 @@ app.use(express.static(p));
 
 router.get("/", (req, res) => {
     res.json({
-        version: "0.0.41"
+        version: "0.0.42"
     });
 });
 
@@ -176,15 +95,17 @@ router.post("/room", postNewRoom);
 
 app.use(cors());
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: true}));
 
-app.use(bodyParser.json());
+app.use(express.json())
 
 app.use(setAllowed);
 
 app.use("/v1", router);
 
-const launchServer = () => {
+
+
+const launchHttpsServer = () => {
 
 	const paths = {
 		key:"/etc/letsencrypt/live/kreiadesign.com/privkey.pem",
@@ -196,7 +117,7 @@ const launchServer = () => {
 		cert:fs.readFileSync(paths.cert)
 	};
 
-	const serverOptions = { 
+	const serverOptions = {
 		key: keys.key,
 		cert: keys.cert 
 	};
@@ -206,6 +127,8 @@ const launchServer = () => {
 	return server;
 
 };
+
+
 
 const launchHttpServer = () => {
 	
@@ -217,71 +140,35 @@ const launchHttpServer = () => {
 
 };
 
-const grabRunningInstances = () => {
-	
-	let instances = undefined;
-	//if local file exist with instances descriptions - use it to retrieve instances configuration
-	//otherwise pass undefined to constructor and it will generate instances by itself 
-	try {
-		const instancesPath = path.resolve('instances.json');
-		const result = fs.readFileSync(instancesPath, 'utf-8');
-		instances = JSON.parse(result);
-	} catch(e) {}
 
-	return instances;
 
-};
-
-const createDummyRoomsForFun = async (nRooms) => {
-
-	for(let i = 0; i < nRooms; i++) {
-		logger.info(`creating room ${i + 1}...`);
-		const result = await janus.createRoom({
-			load: {
-				description: i%2 ? `Cool vp8 room (${i})` : `Cool vp9 room (${i})`,
-				bitrate: 512000,
-				bitrate_cap: false,
-				fir_freq: undefined,
-				videocodec: i===0 ? "vp8" : "vp9",
-				vp9_profile: i===0 ? undefined : "1",
-				permanent: true
-			}
-		});
-		logger.info(`creating room ${i + 1} result...`);
-		console.log(result.load);
-		//const id = result.load.context.room_id;
-		logger.info(`room ${i + 1} created...`);
-		logger.json(result);
-	}
-
-};
-
-/**
- * janus gateway node usage example
- */
 const main = async () => {
 	
-	const nRooms = 5;
+	const { n, mode } = argv;
 
-	const publicIp = argv.ip;
+	let server = null;
 
-	const server = launchHttpServer();
-	
-	await pause(3000);
-	
-	//we need to get dockerized janus instances up and running
-	
-	let instances = grabRunningInstances();
+	if (mode == "local") {
+		server = launchHttpServer();
+	} else {
+		server = launchHttpsServer();
+	}
 
-	console.log("running instances", instances);
-	
-	const generateInstances = instances ? () => instances : undefined;
+	try {
+		terminateInstances();
+	} catch(error) {
+		console.error(error);
+	}
+
+	const instances : any = await runLaunchInstancesScript(n, {
+		image: "herbert1947/janus-gateway-videoroom",
+		n
+	});
 	
 	janus = new Janus({
-		generateInstances,
+		instances,
 		logger,
 		onError:(error) => logger.error(error),
-		publicIp,
 		webSocketOptions:{
 			server
 		}
@@ -289,9 +176,9 @@ const main = async () => {
 
 	await janus.initialize();
 	
-	await createDummyRoomsForFun(nRooms);
-	
+	await createDummyRoomsForFun(janus, 5);
 	
 };
 
 main();
+

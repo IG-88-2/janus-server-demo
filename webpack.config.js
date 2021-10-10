@@ -12,7 +12,8 @@ module.exports = {
 	mode: `development`,
 
 	entry: {
-		'main' : `./main.ts`
+		'main' : `./main.ts`,
+		'launchInstances' : './launchInstances.ts'
 	},
 	
 	output: {
@@ -44,13 +45,19 @@ module.exports = {
 	target: `node`,
 	
 	externals: {
-		puppeteer: 'require("puppeteer")',
+		bufferutil: "bufferutil",
+		"utf-8-validate": "utf-8-validate"
 	},
 
 	plugins: [
-		new CopyWebpackPlugin([
-			{ from: "./janus-gateway-videoroom-demo/development", to: "development" }
-		])
+		new CopyWebpackPlugin({
+			patterns: [
+				{ 
+					from: "./janus-gateway-videoroom-demo/development", 
+					to: "development" 
+				}
+			]
+		})
 	],
 	
 	node: {
