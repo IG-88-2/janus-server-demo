@@ -169,8 +169,15 @@ const main = async () => {
 		instances,
 		logger,
 		onError:(error) => logger.error(error),
+		//TODO modify janus-gateway-node to merge options
 		webSocketOptions:{
-			server
+			port: 8080,
+			backlog: 10,
+			clientTracking: false,
+			perMessageDeflate: false,
+			maxPayload: 10000,
+			//should i pass server only in https case ?
+			//server
 		}
 	});
 
