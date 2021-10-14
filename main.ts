@@ -159,6 +159,8 @@ const main = async () => {
 		console.error(error);
 	}
 
+	await pause(30000);
+
 	const instances : any = await runLaunchInstancesScript(n, {
 		image: "herbert1947/janus-gateway-videoroom",
 		n
