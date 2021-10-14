@@ -163,21 +163,27 @@ const main = async () => {
 		image: "herbert1947/janus-gateway-videoroom",
 		n
 	});
+
+	let webSocketOptions : any = {
+		port: 8080,
+		backlog: 10,
+		clientTracking: false,
+		perMessageDeflate: false,
+		maxPayload: 10000
+	};
+
+	if (mode != "local") {
+		webSocketOptions = {
+			server
+		};
+	}
 	
 	janus = new Janus({
 		instances,
 		logger,
 		onError:(error) => logger.error(error),
 		//TODO modify janus-gateway-node to merge options
-		webSocketOptions:{
-			port: 8080,
-			backlog: 10,
-			clientTracking: false,
-			perMessageDeflate: false,
-			maxPayload: 10000,
-			//should i pass server only in https case ?
-			server: mode == "local" ? undefined : server
-		}
+		webSocketOptions
 	});
 
 	await janus.initialize();
