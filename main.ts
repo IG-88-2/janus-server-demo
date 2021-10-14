@@ -176,7 +176,7 @@ const main = async () => {
 			perMessageDeflate: false,
 			maxPayload: 10000,
 			//should i pass server only in https case ?
-			//server
+			server: mode == "local" ? undefined : server
 		}
 	});
 
