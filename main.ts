@@ -15,8 +15,7 @@ const https = require('https');
 const http = require('http');
 const router = express.Router();
 const app = express();
-const p = path.join(__dirname, "development");
-
+const p = path.join(__dirname, "..", "janus-gateway-videoroom-demo", "development");
 let janus = null;
 
 
@@ -183,7 +182,7 @@ const main = async () => {
 
 	await janus.initialize();
 	
-	await createDummyRoomsForFun(janus, 5);
+	await createDummyRoomsForFun(janus, 15);
 	
 };
 
