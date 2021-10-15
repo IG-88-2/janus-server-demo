@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "start": "node ./dist/main.js --mode local --n 3",
-        "ec2": "node ./dist/main.js --n 3",
+        "ec2": "node ./dist/main.js --n 2",
         "pm2:start": "pm2 start ./dist/main.js",
         "pm2:stop": "pm2 stop ./dist/main.js",
         "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js -w --config webpack.config.js",
