@@ -4,8 +4,8 @@
     "author": "Anatoly Strashkevich",
     "private": true,
     "scripts": {
-        "start": "node ./dist/main.js --mode local --n 3",
-        "ec2": "node ./dist/main.js --n 2",
+        "start": "node ./dist/main.js --n 3 --mode local --image herbert1947/janus-gateway-videoroom --ip 127.0.0.1",
+        "ec2": "node ./dist/main.js --n 2 --mode remote --image herbert1947/janus-gateway-videoroom --ip 18.158.159.40",
         "pm2:start": "pm2 start ./dist/main.js",
         "pm2:stop": "pm2 stop ./dist/main.js",
         "build": "node --max_old_space_size=4096 ./node_modules/webpack/bin/webpack.js --config webpack.config.js",

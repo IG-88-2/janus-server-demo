@@ -1,7 +1,8 @@
+import { Config } from '../main';
 import { pause } from './pause';
 import { spawnProcess } from './spawnProcess';
 
-export const runLaunchInstancesScript = (p: number, options) => {
+export const runLaunchInstancesScript = (delay: number, options: Config) => {
 	
     const source = spawnProcess("launchInstances.js");
 
@@ -21,7 +22,7 @@ export const runLaunchInstancesScript = (p: number, options) => {
 		
 		source.on("message", (data) => {
 			//TODO exec docker not calling callback - verify launched
-			pause(p)
+			pause(delay)
 			.then(() => {
 				source.send({
 					type:"exit"

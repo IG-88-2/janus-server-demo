@@ -140,10 +140,18 @@ const launchHttpServer = () => {
 };
 
 
+export interface Config {
+	mode: "remote" | "local",
+	image: string,
+	n: number,
+	ip: string
+}
+
+
 
 const main = async () => {
 	
-	const { n, mode } = argv;
+	const { n, mode, ip, image } = argv;
 
 	let server = null;
 
@@ -161,20 +169,24 @@ const main = async () => {
 
 	await pause(30000);
 
-	const instances : any = await runLaunchInstancesScript(n, {
-		image: "herbert1947/janus-gateway-videoroom",
-		n
+	const instances : any = await runLaunchInstancesScript(10000, {
+		image,
+		n,
+		ip,
+		mode
 	});
 
-	let webSocketOptions : any = {
-		port: 8080,
-		backlog: 10,
-		clientTracking: false,
-		perMessageDeflate: false,
-		maxPayload: 10000
-	};
+	let webSocketOptions : any = {};
 
-	if (mode != "local") {
+	if (mode == "local") {
+		webSocketOptions = {
+			port: 8080,
+			backlog: 10,
+			clientTracking: false,
+			perMessageDeflate: false,
+			maxPayload: 10000
+		};
+	} else if (mode == "remote") {
 		webSocketOptions = {
 			server
 		};
