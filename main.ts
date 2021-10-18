@@ -190,7 +190,7 @@ const main = async () => {
 
 	await janus.initialize();
 	
-	await createDummyRoomsForFun(janus, 15);
+	await createDummyRoomsForFun(janus, 5);
 	
 };
 

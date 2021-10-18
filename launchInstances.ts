@@ -54,11 +54,11 @@ const launchInstances = async (config) => {
             admin_key : uuid.v1(),
             server_name : `instance_${i}`,
             log_prefix : `instance_${i}:`,
-            docker_ip :  `127.0.0.${1 + i}`, //"127.0.0.1",
+            docker_ip :  `127.0.0.${1 + i}`,
             ws_port : start_ws_port + i,
             admin_ws_port : start_admin_ws_port + i,
             stun_server : "stun.voip.eutelia.it",
-            nat_1_1_mapping : "3.121.126.200", //`127.0.0.${1 + i}`, //"127.0.0.1",
+            nat_1_1_mapping : "18.158.159.40", // `127.0.0.1`, `127.0.0.${1 + i}`,
             stun_port : 3478,
             debug_level : 5 //6
         };
@@ -97,9 +97,9 @@ const launchInstances = async (config) => {
         //-P
         //--network=host
         //command += `-p 127.0.0.1:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
+        //command += `-p ${docker_ip}:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
         
-        //command += `-p ${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
-        command += `-p ${docker_ip}:${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
+        command += `-p ${udpStart}-${udpEnd}:${udpStart}-${udpEnd}/udp `;
         command += `-p ${ws_port}:${ws_port} `;
         command += `-p ${admin_ws_port}:${admin_ws_port} `;
         command += `${args.map(([name,value]) => `-e ${name}="${value}"`).join(' ')} `;
