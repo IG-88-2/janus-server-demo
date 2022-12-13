@@ -31,7 +31,7 @@
         "cors": "^2.8.5",
         "debug": "~2.6.9",
         "deep-diff": "^0.3.8",
-        "express": "^4.17.1",
+        "express": "^4.17.3",
         "express-jwt": "^6.0.0",
         "express-rate-limit": "^2.11.0",
         "express-validator": "^5.3.1",
